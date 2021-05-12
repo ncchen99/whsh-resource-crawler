@@ -3,6 +3,7 @@ import os
 import json
 import urllib.parse
 import re
+from time import gmtime, strftime
 from bs4 import BeautifulSoup
 from pprint import pprint
 
@@ -17,7 +18,7 @@ class Widget:
         self.cookie = {"PHPSESSID": sessid}
         self.request_urls = request_urls
         self.percent_encode = {"%21": "!", "%23": "#", "%24": "$", "%26": "&", "%27": "'", "%28": "(", "%29": ")", "%2A": "*", "%2B": "+", "%2C": ",", "%2F": "/",
-                               "%3A": ":", "%3B": ";", "%3D%": "=", "%3F": "?", "%40": "@", "%5B": "[", "%5D": "]", "%20": " "}
+                               "%3A": ":", "%3B": ";", "%3D%": "=", "%3F": "?", "%40": "@", "%5B": "[", "%5D": "]", "%20": " ", "%7E": "~"}
 
     def hex_to_char(self, hex_str):
         """ converts a single hex-encoded character 'FFFF' into the corresponding real character """
@@ -53,8 +54,14 @@ class Widget:
             match_percent_decode = re.findall(
                 r"%([0-9a-fA-F]{2})", attachment[-1])
             for sign in match_percent_decode:
-                attachment[-1] = attachment[-1].replace(
-                    "%"+sign, self.percent_encode["%"+sign])
+                try:
+                    attachment[-1] = attachment[-1].replace(
+                        "%"+sign, self.percent_encode["%"+sign])
+                except:
+                    if not os.path.exists("./Error log"):
+                        os.makedirs("./Error log")
+                    with open("./Error log/ERROR log " + str(strftime("%Y-%m-%d-%H-%M", gmtime()))+".txt", 'w') as f:
+                        f.write(attachment[-1])
             attachment_list.append(
                 self.request_urls["base_url"]
                 + "resources/"+res_dict[0]["uid"] + "/"
@@ -77,11 +84,14 @@ class Widget:
 
         print("downloading: ", url.replace(
             self.request_urls["base_url"] + "resources/", ""), end=" ")
-        r = requests.get(url, headers=self.headers, cookies=self.cookie)
-        with open(url.replace(self.request_urls["base_url"], ""), 'wb') as f:
-            # 將圖片下載下來
-            f.write(r.content)
-        print("... done")
+        if os.path.isfile(url.replace(self.request_urls["base_url"], "")):
+            print("... already downloaded")
+        else:
+            r = requests.get(url, headers=self.headers, cookies=self.cookie)
+            with open(url.replace(self.request_urls["base_url"], ""), 'wb') as f:
+                # 將圖片下載下來
+                f.write(r.content)
+            print("... done")
 
     def save_attachment(self, url):
         dirs = url.replace(
@@ -95,8 +105,11 @@ class Widget:
             os.makedirs(path)
         print("downloading: ", url.replace(
             self.request_urls["base_url"] + "resources/", ""), end=" ")
-        r = requests.get(url, headers=self.headers, cookies=self.cookie)
-        with open(url.replace(self.request_urls["base_url"], ""), 'wb') as f:
-            # 將圖片下載下來
-            f.write(r.content)
-        print("... done")
+        if os.path.isfile(url.replace(self.request_urls["base_url"], "")):
+            print("... already downloaded")
+        else:
+            r = requests.get(url, headers=self.headers, cookies=self.cookie)
+            with open(url.replace(self.request_urls["base_url"], ""), 'wb') as f:
+                # 將圖片下載下來
+                f.write(r.content)
+            print("... done")

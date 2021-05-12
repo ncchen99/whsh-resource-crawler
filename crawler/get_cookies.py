@@ -1,6 +1,6 @@
-from selenium import webdriver
 import requests
 import time
+# from selenium import webdriver
 
 
 def get_PHPSESSID(url):
